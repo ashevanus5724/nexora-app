@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexora Team</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f2f5fa;margin:0;color:#172554}
+header{background:#142d5e;color:white;padding:22px;text-align:center}
+main{padding:16px;max-width:700px;margin:auto}
+.card{background:white;border-radius:14px;padding:16px;margin:12px 0;box-shadow:0 3px 12px #0001}
+input,select,button{box-sizing:border-box;padding:12px;margin:5px 0;width:100%;border:1px solid #ccd5e5;border-radius:8px;font-size:16px}
+button{background:#2458b5;color:white;border:0;font-weight:bold}
+.member{border-left:4px solid #2458b5;padding:10px;margin:10px 0;background:#f7f9ff}
+.small{color:#52627c;font-size:14px}
+</style>
+</head>
+<body>
+<header>
+<h1>🚀 NEXORA</h1>
+<p>Build Your Team. Grow Together.</p>
+</header>
+<main>
+<div class="card">
+<h2>Team Dashboard</h2>
+<p>कुल Members: <strong id="total">1</strong></p>
+<p>अधिकतम Levels: <strong>3</strong></p>
+</div>
+<div class="card">
+<h2>नया Member जोड़ें</h2>
+<input id="name" placeholder="Member का नाम">
+<input id="phone" placeholder="मोबाइल नंबर (वैकल्पिक)" type="tel">
+<select id="parent"></select>
+<button onclick="addMember()">+ Add Member</button>
+<p class="small">हर Leader के नीचे अधिकतम 4 Members जोड़े जा सकते हैं।</p>
+</div>
+<div class="card">
+<h2>आपकी Team</h2>
+<div id="tree"></div>
+</div>
+</main>
+<script>
+let members=JSON.parse(localStorage.getItem('nexoraMembers')||'null')||[
+{id:1,name:'Main Leader',phone:'',parent:null,level:1}
+];
+function save(){localStorage.setItem('nexoraMembers',JSON.stringify(members));render();}
+function children(id){return members.filter(m=>m.parent===id);}
+function render(){
+document.getElementById('total').textContent=members.length;
+let sel=document.getElementById('parent');
+sel.innerHTML='';
+members.filter(m=>m.level<3&&children(m.id).length<4).forEach(m=>{
+let o=document.createElement('option');o.value=m.id;o.textContent=m.name+' (Level '+m.level+')';sel.appendChild(o);
+});
+function node(m){
+let div=document.createElement('div');div.className='member';
+let h=document.createElement('strong');h.textContent=m.name;
+let p=document.createElement('p');p.className='small';p.textContent='Level '+m.level+(m.phone?' · '+m.phone:'');
+div.append(h,p);
+children(m.id).forEach(c=>div.appendChild(node(c)));
+return div;
+}
+let root=members.find(m=>m.parent===null);
+let tree=document.getElementById('tree');tree.replaceChildren();
+if(root)tree.appendChild(node(root));
+}
+function addMember(){
+let name=document.getElementById('name').value.trim();
+let phone=document.getElementById('phone').value.trim();
+let parentId=Number(document.getElementById('parent').value);
+let parent=members.find(m=>m.id===parentId);
+if(!name){alert('कृपया Member का नाम लिखें।');return;}
+if(!parent){alert('पहले एक योग्य Leader चुनें।');return;}
+if(parent.level>=3){alert('अधिकतम 3 Levels ही रख सकते हैं।');return;}
+if(children(parent.id).length>=4){alert('एक Leader के नीचे अधिकतम 4 Members हो सकते हैं।');return;}
+members.push({id:Date.now(),name,phone,parent:parent.id,level:parent.level+1});
+document.getElementById('name').value='';
+document.getElementById('phone').value='';
+save();
+}
+render();
+</script>
+</body>
+</html>
